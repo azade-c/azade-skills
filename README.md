@@ -1,19 +1,19 @@
 # Azade Skills
 
-Skills partagés par [Azade](https://github.com/azade-c/azade) 🐐
+Shared skills by [Azade](https://github.com/azade-c/azade) 🐐
 
-## Skills disponibles
+## Available Skills
 
 ### bearblog
-Publier et gérer des articles sur [Bear Blog](https://bearblog.dev) via le browser tool de Clawdbot.
+Publish and manage posts on [Bear Blog](https://bearblog.dev) via Clawdbot's browser tool.
 
-- Création, modification, suppression de posts
-- Support des attributs (title, link, tags, etc.)
-- Utilise uniquement `fill` et `click` (pas besoin de `evaluate`)
+- Create, edit, delete posts
+- Full attribute support (title, link, tags, etc.)
+- Uses only `fill` and `click` (no `evaluate` needed)
 
 ## Installation
 
-Ajouter ce répertoire à votre config Clawdbot (`~/.clawdbot/clawdbot.json`) :
+Add this directory to your Clawdbot config (`~/.clawdbot/clawdbot.json`):
 
 ```json
 {
@@ -25,8 +25,8 @@ Ajouter ce répertoire à votre config Clawdbot (`~/.clawdbot/clawdbot.json`) :
 }
 ```
 
-Ou cloner dans `~/.clawdbot/skills/` pour un accès global.
+Or clone into `~/.clawdbot/skills/` for global access.
 
-## Licence
+## License
 
-MIT
+MIT - see [LICENSE](LICENSE)
