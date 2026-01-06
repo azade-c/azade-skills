@@ -21,16 +21,31 @@ browser action:navigate url:https://bearblog.dev/accounts/login/
 ### Step 1: Navigate to the post editor
 
 ```
-browser action:navigate url:https://<subdomain>.bearblog.dev/dashboard/post/
+browser action:navigate url:https://bearblog.dev/<subdomain>/dashboard/posts/new/
 ```
+
+**Note:** The URL format is `bearblog.dev/<subdomain>/dashboard/posts/new/`, NOT `<subdomain>.bearblog.dev/dashboard/post/`.
 
 ### Step 2: Fill the editor
 
-Bear Blog uses a **plain text header format** — no JavaScript DOM manipulation needed!
+Bear Blog uses a **plain text header format**.
 
-The editor has two textareas:
-- `header_content` — metadata attributes (one per line)
-- `body_content` — the actual post content in Markdown
+The editor has two fields:
+- `header_content` — **hidden input** for metadata attributes (one per line)
+- `body_content` — visible textarea for the actual post content in Markdown
+
+**Important:** The `header_content` field is hidden. You must use JavaScript to fill it:
+
+```javascript
+// Fill header (attributes)
+document.querySelector('input[name=header_content]').value = 'title: My Post\nlink: my-post\ntags: tag1, tag2';
+
+// Fill body (content)
+document.querySelector('#body_content').value = 'Your markdown content here...';
+
+// Submit the form
+document.querySelector('form').submit();
+```
 
 **Header format:**
 ```
