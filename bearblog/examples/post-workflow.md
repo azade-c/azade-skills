@@ -30,13 +30,13 @@ browser action:click selector:"button[type='submit']"
 ### 3. Navigate to New Post
 
 ```
-browser action:navigate url:https://<subdomain>.bearblog.dev/dashboard/post/
+browser action:navigate url:https://bearblog.dev/<subdomain>/dashboard/posts/new/
 browser action:snapshot
 ```
 
 ### 4. Fill Header Content
 
-The header textarea has id `header_content`:
+The header editor has id `header_content` (contenteditable div):
 
 ```
 browser action:type selector:"#header_content" text:"title: My Post Title

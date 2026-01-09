@@ -24,28 +24,18 @@ browser action:navigate url:https://bearblog.dev/accounts/login/
 browser action:navigate url:https://bearblog.dev/<subdomain>/dashboard/posts/new/
 ```
 
-**Note:** The URL format is `bearblog.dev/<subdomain>/dashboard/posts/new/`, NOT `<subdomain>.bearblog.dev/dashboard/post/`.
 
 ### Step 2: Fill the editor
 
 Bear Blog uses a **plain text header format**.
 
 The editor has two fields:
-- `header_content` — **hidden input** for metadata attributes (one per line)
-- `body_content` — visible textarea for the actual post content in Markdown
+- `header_content` — a visible editor (`div#header_content[contenteditable]`) for metadata attributes (one per line)
+- `body_content` — a visible `textarea#body_content` for the Markdown body
 
-**Important:** The `header_content` field is hidden. You must use JavaScript to fill it:
+There is also a hidden input (`input#hidden_header_content[name=header_content]`) that Bear Blog populates **at submit time**.
 
-```javascript
-// Fill header (attributes)
-document.querySelector('input[name=header_content]').value = 'title: My Post\nlink: my-post\ntags: tag1, tag2';
-
-// Fill body (content)
-document.querySelector('#body_content').value = 'Your markdown content here...';
-
-// Submit the form
-document.querySelector('form').submit();
-```
+**Verified workflow:** fill `div#header_content` and `textarea#body_content`, then click **Publish** or **Save as draft**. You do **not** need to fill the hidden input manually.
 
 **Header format:**
 ```
@@ -262,13 +252,14 @@ HTML is supported directly in Markdown:
 Replace `<subdomain>` with your blog subdomain:
 
 - **Blog list:** `https://bearblog.dev/dashboard/`
-- **Dashboard:** `https://<subdomain>.bearblog.dev/dashboard/`
-- **New post:** `https://<subdomain>.bearblog.dev/dashboard/post/`
-- **Edit post:** `https://<subdomain>.bearblog.dev/dashboard/post/<uid>/`
-- **Styles:** `https://<subdomain>.bearblog.dev/dashboard/styles/`
-- **Navigation:** `https://<subdomain>.bearblog.dev/dashboard/nav/`
-- **Analytics:** `https://<subdomain>.bearblog.dev/dashboard/analytics/`
-- **Settings:** `https://<subdomain>.bearblog.dev/dashboard/settings/`
+- **Dashboard:** `https://bearblog.dev/<subdomain>/dashboard/`
+- **Posts list:** `https://bearblog.dev/<subdomain>/dashboard/posts/`
+- **New post:** `https://bearblog.dev/<subdomain>/dashboard/posts/new/`
+- **Edit post:** `https://bearblog.dev/<subdomain>/dashboard/posts/<uid>/`
+- **Styles:** `https://bearblog.dev/<subdomain>/dashboard/styles/`
+- **Navigation:** `https://bearblog.dev/<subdomain>/dashboard/nav/`
+- **Analytics:** `https://bearblog.dev/<subdomain>/dashboard/analytics/`
+- **Settings:** `https://bearblog.dev/<subdomain>/dashboard/settings/`
 
 ## Example: Complete Post
 
