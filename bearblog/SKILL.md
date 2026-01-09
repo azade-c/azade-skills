@@ -41,7 +41,6 @@ title: Your Post Title
 link: custom-slug
 published_date: 2026-01-05 14:00
 tags: tag1, tag2, tag3
-make_discoverable: true
 is_page: false
 class_name: custom-css-class
 meta_description: SEO description for the post
@@ -67,7 +66,6 @@ Click the publish button or submit the form with `publish: true`.
 | `link` | Custom URL slug | `link: my-custom-url` |
 | `published_date` | Publication date/time | `published_date: 2026-01-05 14:30` |
 | `tags` | Comma-separated tags | `tags: tech, ai, coding` |
-| `make_discoverable` | Show in discovery feed | `make_discoverable: true` |
 | `is_page` | Static page vs blog post | `is_page: false` |
 | `class_name` | Custom CSS class (slugified) | `class_name: featured` |
 | `meta_description` | SEO meta description | `meta_description: A post about...` |
@@ -266,10 +264,9 @@ Replace `<subdomain>` with your blog subdomain:
 title: Getting Started with AI Assistants
 link: ai-assistants-intro
 published_date: 2026-01-05 15:00
-tags: ai, tutorial, tech
-make_discoverable: true
-is_page: false
 meta_description: A beginner's guide to working with AI assistants
+tags: ai, tutorial, tech
+is_page: false
 lang: en
 ```
 
