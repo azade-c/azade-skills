@@ -34,22 +34,20 @@ browser action:navigate url:https://bearblog.dev/<subdomain>/dashboard/posts/new
 browser action:snapshot
 ```
 
-### 4. Fill Header Content
+### 4. Fill Attributes (header)
 
-The header editor has id `header_content` (contenteditable div):
+Fill the `div#header_content` editor:
 
 ```
-browser action:type selector:"#header_content" text:"title: My Post Title
+browser action:fill selector:"#header_content" text:"title: My Post Title
 link: my-post-slug
-published_date: 2026-01-05 15:00
 tags: example, test
-make_discoverable: true
-meta_description: A test post"
+make_discoverable: false"
 ```
 
-### 5. Fill Body Content
+### 5. Fill Body
 
-The body textarea has id `body_content`:
+Fill the `textarea#body_content`:
 
 ```
 browser action:type selector:"#body_content" text:"# Hello World

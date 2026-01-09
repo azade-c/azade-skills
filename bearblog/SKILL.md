@@ -29,13 +29,11 @@ browser action:navigate url:https://bearblog.dev/<subdomain>/dashboard/posts/new
 
 Bear Blog uses a **plain text header format**.
 
-The editor has two fields:
-- `header_content` — a visible editor (`div#header_content[contenteditable]`) for metadata attributes (one per line)
-- `body_content` — a visible `textarea#body_content` for the Markdown body
+The editor fields are:
+- `div#header_content` (contenteditable): attributes (one per line)
+- `textarea#body_content`: Markdown body
 
-There is also a hidden input (`input#hidden_header_content[name=header_content]`) that Bear Blog populates **at submit time**.
-
-**Verified workflow:** fill `div#header_content` and `textarea#body_content`, then click **Publish** or **Save as draft**. You do **not** need to fill the hidden input manually.
+**Verified:** use `fill`/`type` on those two fields, then click **Publish** (or **Save as draft**). No `evaluate` needed.
 
 **Header format:**
 ```
