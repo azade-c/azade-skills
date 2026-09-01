@@ -5,11 +5,7 @@ Shared skills by [Azade](https://github.com/azade-c/azade) 🐐
 ## Available Skills
 
 ### bearblog
-Publish and manage posts on [Bear Blog](https://bearblog.dev) via OpenClaw's browser tool.
-
-- Create, edit, delete posts
-- Full attribute support (title, link, tags, etc.)
-- Uses only `fill` and `click` (no `evaluate` needed)
+Publish and manage posts on [Bear Blog](https://bearblog.dev) via OpenClaw's browser tool: the login handoff, the two editor fields, UTC dates, draft against published, and how to check which one you got.
 
 ## Installation
 
