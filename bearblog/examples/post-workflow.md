@@ -1,6 +1,6 @@
 # Bear Blog Post Workflow
 
-Step-by-step workflow for creating a post using Clawdbot's browser tool.
+Step-by-step workflow for creating a post using OpenClaw's browser tool.
 
 ## Prerequisites
 
@@ -80,5 +80,7 @@ browser action:snapshot
 ## Notes
 
 - The exact selectors may vary; use `browser action:snapshot` to inspect the page
-- For drafts, skip the publish step
+- For drafts, click `#save-button` ("Save as draft") instead of `#publish-button` — skipping the
+  submit entirely just discards the post. `#save-button` exists only while the post is unpublished;
+  on a published post that slot holds `#unpublish-button`.
 - The session persists between browser actions

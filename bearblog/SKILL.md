@@ -16,6 +16,19 @@ Bear Blog requires browser-based authentication. Log in once via the browser too
 browser action:navigate url:https://bearblog.dev/accounts/login/
 ```
 
+#### 🚧 Cloudflare Turnstile guards the login (verified 2026-09-01)
+
+`bearblog.dev` sits behind Cloudflare. When the session cookie has expired, any dashboard URL
+redirects to `/accounts/login/` and serves a **"Verify you are human"** checkbox instead of the form.
+The page snapshot at that point contains only Cloudflare links plus a `Ray ID` — that is the tell.
+
+**Do not click that checkbox.** It exists to tell a human apart from a bot, and the agent is the bot.
+Hand the browser to the human instead: they solve the challenge and log in on the live screen
+(see the `host-infra` skill for this host's screen-sharing URL), then say when it is done.
+The session persists afterwards, so this costs one handoff, not one per post.
+
+Never ask for the Bear Blog password in chat — the human types it directly into the browser.
+
 ## Creating a Post
 
 ### Step 1: Navigate to the post editor
@@ -66,10 +79,36 @@ The editor fields are:
   ```
 - Avoid literal regex `/.../ ` inside the function when going through the CLI; build patterns with `new RegExp(...)` or string ops if needed.
 
-Then publish by clicking the button directly:
+Then click the button you want directly — see **Step 3** for which one:
 ```js
+[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Save as draft').click();
 [...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Publish').click();
 ```
+
+#### ⚠️ Shell quoting eats apostrophes when generating the JS (verified 2026-09-01)
+
+Building the `evaluate` payload with `node -e '...'` wraps the whole program in **single quotes**, so
+no `'` can appear inside it. A French header written that way ships silently mangled — a real
+`meta_description` went out as *"Mon identifiant nest plus main : cest mon nom"* and was only caught
+on re-read. The body is safe (it is read from a file); the danger is any string typed inline.
+
+Use the typographic apostrophe `’` in prose, or move the text out of the inline program:
+
+```bash
+node - <<'EOF' > /tmp/fill.js
+const fs = require("fs");
+const body = fs.readFileSync("post.md", "utf8").trim();
+// JSON.stringify handles every quote, newline and backtick safely
+console.log('() => { document.querySelector("#body_content").value = ' + JSON.stringify(body) + '; }');
+EOF
+JS=$(cat /tmp/fill.js); openclaw browser evaluate --fn "$JS"
+```
+
+Always `JSON.stringify` the strings into the generated JS — never interpolate raw text, and never use
+a JS template literal (the body may contain ``` code fences, which are backticks).
+
+**Re-read the header after filling.** `evaluate` returns whatever you make it return: end the function
+with `return h.innerText` and actually look at it.
 
 #### ⏰ `published_date` is UTC — generate it, never type it by hand (hard rule)
 
@@ -87,6 +126,13 @@ date -u "+%Y-%m-%d %H:%M"   # current UTC, the value to put in published_date
 - To fix a wrong date afterward: open the editor, rewrite only the `published_date` line in the header via `evaluate` (innerText), then click **Publish** again to re-save.
 
 > ⚠️ Past incident (2026-06-17): a post written ~23:00 Paris was saved as `2026-06-18 05:00` UTC and appeared as a *next-day morning* article. Root cause: hand-typed/guessed time instead of `date -u`. Fixed to `2026-06-17 21:00`.
+
+**Exception — a text that states its own date.** When the article says *"nous sommes le 31 août"*, the
+publish moment and the written date differ, and the date the reader must see is the **written** one:
+publishing it as "1 September" contradicts its own first line. In that case date the post from when it
+was written, still generated rather than guessed (`date -u -d '2026-08-31 22:00 CEST' "+%Y-%m-%d %H:%M"`),
+and say so explicitly to the human — a deliberate choice announced is not the same as a silent drift.
+The rule being enforced is *never guess a date*, not *always use now*.
 
 **Header format:**
 ```
@@ -108,195 +154,54 @@ alias: alternative-url
 
 The separator `___` (three underscores) is used in templates to separate header from body.
 
-### Step 3: Publish
+### Step 3: Save as draft, or publish
 
-Click the publish button or submit the form with `publish: true`.
+The editor has **two** save buttons. There is no `publish: true` form field — click the one you want.
 
-## Post Attributes Reference
+| Button | id | Effect |
+|--------|----|--------|
+| `Save as draft` | `#save-button` | Persists the post **unpublished**. Use this whenever the human has not yet read it. |
+| `Publish` | `#publish-button` | Makes it live at `https://<subdomain>.bearblog.dev/<link>/`. |
 
-| Attribute | Description | Example |
-|-----------|-------------|---------|
-| `title` | Post title (required) | `title: My Post` |
-| `link` | Custom URL slug | `link: my-custom-url` |
-| `published_date` | Publication date/time | `published_date: 2026-01-05 14:30` |
-| `tags` | Comma-separated tags | `tags: tech, ai, coding` |
-| `make_discoverable` | Show in discovery feed | `make_discoverable: true` |
-| `is_page` | Static page vs blog post | `is_page: false` |
-| `class_name` | Custom CSS class (slugified) | `class_name: featured` |
-| `meta_description` | SEO meta description | `meta_description: A post about...` |
-| `meta_image` | Open Graph image URL | `meta_image: https://...` |
-| `lang` | Language code | `lang: fr` |
-| `canonical_url` | Canonical URL for SEO | `canonical_url: https://...` |
-| `alias` | Alternative URL path | `alias: old-url` |
+Both are `type=submit` and safe to click repeatedly: they save the current field contents. A draft is
+published by reopening it and clicking `Publish`; nothing needs to be retyped.
 
-## Extended Markdown
+**The button row tells you the post's state** — read it instead of guessing (verified 2026-09-01):
 
-Bear Blog uses [Mistune](https://github.com/lepture/mistune) with plugins:
+| State | Buttons present |
+|-------|-----------------|
+| New, never saved | `← Back` · `Publish` · `Save as draft` |
+| Saved draft | + `View draft` · `Delete` |
+| Published | `← Back` · `Publish` · `View` · `Delete` · **`Unpublish`** (`#unpublish-button`) |
 
-### Text Formatting
-- `~~strikethrough~~` → ~~strikethrough~~
-- `^superscript^` → superscript
-- `~subscript~` → subscript
-- `==highlighted==` → highlighted (mark)
-- `**bold**` and `*italic*` — standard
+So `Save as draft` / `View draft` present ⇒ still a draft; `Unpublish` present ⇒ live. Note that
+`#save-button` **does not exist on a published post** — it is replaced by `#unpublish-button`, so a
+lookup by id there fails misleadingly. Prefer matching on button text, or check the id exists first.
 
-### Footnotes
-```markdown
-Here's a sentence with a footnote.[^1]
+After the first save the URL becomes `/<subdomain>/dashboard/posts/<uid>/`; keep that uid to reopen it.
 
-[^1]: This is the footnote content.
+**Bear Blog normalises the header on save:** it reorders the keys and drops attributes left at their
+default (`is_page: false`, `make_discoverable: true` disappear). This is not data loss — do not
+re-add them in a panic.
+
+#### Verifying the result — check the right URL
+
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" -A Mozilla/5.0 https://<subdomain>.bearblog.dev/<link>/
+curl -s -A Mozilla/5.0 https://<subdomain>.bearblog.dev/blog/ | grep -o 'href="/<link>/"'
 ```
 
-### Task Lists
-```markdown
-- [x] Completed task
-- [ ] Incomplete task
-```
+- Post URL returns **404** → still a draft. Returns **200** → live.
+- The post index is at **`/blog/`**, not at `/`. The blog root is a landing page that may list no posts
+  at all, so "grep the homepage" proves nothing in either direction. Use the post URL status code.
+- Confirm the rendered date too: `curl -s ... | grep -o 'datetime="[^"]*"'`.
 
-### Tables
-```markdown
-| Header 1 | Header 2 |
-|----------|----------|
-| Cell 1   | Cell 2   |
-```
+## Reference material
 
-### Code Blocks
-````markdown
-```python
-def hello():
-    print("Hello, world!")
-```
-````
-
-Syntax highlighting via Pygments (specify language after ```).
-
-### Math (LaTeX)
-- Inline: `$E = mc^2$`
-- Block: `$$\int_0^\infty e^{-x^2} dx$$`
-
-### Abbreviations
-```markdown
-*[HTML]: Hypertext Markup Language
-The HTML specification is maintained by the W3C.
-```
-
-### Admonitions
-```markdown
-.. note::
-   This is a note admonition.
-
-.. warning::
-   This is a warning.
-```
-
-### Table of Contents
-```markdown
-.. toc::
-```
-
-## Dynamic Variables
-
-Use `{{ variable }}` in your content:
-
-### Blog Variables
-- `{{ blog_title }}` — Blog title
-- `{{ blog_description }}` — Blog meta description
-- `{{ blog_created_date }}` — Blog creation date
-- `{{ blog_last_modified }}` — Time since last modification
-- `{{ blog_last_posted }}` — Time since last post
-- `{{ blog_link }}` — Full blog URL
-- `{{ tags }}` — Rendered tag list with links
-
-### Post Variables (in post templates)
-- `{{ post_title }}` — Current post title
-- `{{ post_description }}` — Post meta description
-- `{{ post_published_date }}` — Publication date
-- `{{ post_last_modified }}` — Time since modification
-- `{{ post_link }}` — Full post URL
-- `{{ next_post }}` — Link to next post
-- `{{ previous_post }}` — Link to previous post
-
-### Post Listing
-```markdown
-{{ posts }}
-{{ posts limit:5 }}
-{{ posts tag:"tech" }}
-{{ posts tag:"tech,ai" limit:10 order:asc }}
-{{ posts description:True image:True content:True }}
-```
-
-Parameters:
-- `tag:` — filter by tag(s), comma-separated
-- `limit:` — max number of posts
-- `order:` — `asc` or `desc` (default: desc)
-- `description:True` — show meta descriptions
-- `image:True` — show meta images
-- `content:True` — show full content (only on pages)
-
-### Email Signup (upgraded blogs only)
-```markdown
-{{ email-signup }}
-{{ email_signup }}
-```
-
-## Links
-
-### Standard Links
-```markdown
-[Link text](https://example.com)
-[Link with title](https://example.com "Title text")
-```
-
-### Open in New Tab
-Prefix URL with `tab:`:
-```markdown
-[External link](tab:https://example.com)
-```
-
-### Heading Anchors
-Headings automatically get slugified IDs:
-```markdown
-## My Section Title
-```
-Links to: `#my-section-title`
-
-## Typography
-
-Automatic replacements:
-- `(c)` → ©
-- `(C)` → ©
-- `(r)` → ®
-- `(R)` → ®
-- `(tm)` → ™
-- `(TM)` → ™
-- `(p)` → ℗
-- `(P)` → ℗
-- `+-` → ±
-
-## Raw HTML
-
-HTML is supported directly in Markdown:
-
-```html
-<div class="custom-class" style="text-align: center;">
-  <p>Centered content with custom styling</p>
-</div>
-```
-
-**Note:** `<script>`, `<object>`, `<embed>`, `<form>` are stripped for free accounts. Iframes are whitelisted (YouTube, Vimeo, Spotify, etc.).
-
-## Whitelisted Iframe Sources
-
-- youtube.com, youtube-nocookie.com
-- vimeo.com
-- soundcloud.com
-- spotify.com
-- codepen.io
-- google.com (docs, drive, maps)
-- bandcamp.com
-- apple.com (music embeds)
-- archive.org
-- And more...
+Post attributes, extended Markdown (footnotes, admonitions, math, tables), dynamic `{{ variables }}`,
+typography substitutions, raw HTML and the iframe allowlist all live in
+[`examples/markdown-reference.md`](examples/markdown-reference.md). Open it when you need a specific
+syntax; the workflow above does not require it.
 
 ## Dashboard URLs
 
@@ -354,16 +259,18 @@ Check out [OpenAI](tab:https://openai.com) or [Anthropic](tab:https://anthropic.
 1. **Preview before publishing** — Use the preview button to check formatting
 2. **Use templates** — Set up a post template in dashboard settings for consistent headers
 3. **Schedule posts** — Set `published_date` in the future
-4. **Draft mode** — Don't click publish to keep as draft
+4. **Draft mode** — Click `Save as draft`; it is a real button next to `Publish` (see Step 3)
 5. **Custom CSS** — Add `class_name` and style in your blog's CSS
 6. **SEO** — Always set `meta_description` and `meta_image`
 
 ## Troubleshooting
 
-- **Post not showing?** Check `publish` status and `published_date`
+- **Post not showing?** Check it was actually published (`Save as draft` ≠ `Publish`) and check `published_date`. Look at `/blog/`, not at the blog root — the root is a landing page and may list nothing.
 - **Tags not working?** Use comma separation, no quotes
 - **Styling issues?** Check `class_name` is slugified (lowercase, hyphens)
 - **Date format error?** Use `YYYY-MM-DD HH:MM` — and remember it's **UTC** (see filling section).
 - **Post 404 / weird long slug?** The header was filled with `textContent` (flattened) instead of `innerText`. Re-fill the header via `evaluate` with `innerText`.
 - **Wrong publish time / post shows on the wrong day?** Never hand-type the time. Generate `published_date` with `date -u "+%Y-%m-%d %H:%M"` at publish time, and sanity-check: an evening Paris post must read UTC 20:00–21:00 of the *same* day, not next-day morning. See the `published_date` section.
 - **`evaluate` says “Invalid regular expression flags”?** You passed a file path (or literal regex) to `--fn`. It wants inline arrow-function code: `--fn "() => ..."`. Expand files with `JS=$(cat f.js); --fn "$JS"`.
+- **Apostrophes missing from the published text?** The JS was generated inside `node -e '...'`, whose single quotes silently dropped every `'`. See the shell-quoting section; re-read the header after filling.
+- **Login page shows “Verify you are human”?** Cloudflare Turnstile — the agent does not click it. Hand the browser to the human (see Authentication).

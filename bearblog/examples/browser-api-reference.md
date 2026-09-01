@@ -1,10 +1,10 @@
 # Bear Blog Browser API Reference
 
-Complete reference for interacting with Bear Blog via Clawdbot's browser tool.
+Complete reference for interacting with Bear Blog via OpenClaw's browser tool.
 
 ## Prerequisites
 
-1. Browser enabled: `DISPLAY=:99` in `~/.clawdbot/.env`
+1. Browser enabled: `DISPLAY=:99` in `~/.openclaw/.env`
 2. Browser started: `POST http://127.0.0.1:18791/start`
 3. Logged in (session persists in cookies)
 
@@ -36,20 +36,27 @@ Bear Blog uses:
 - `input#hidden_header_content` (hidden) - auto-filled on submit by JS
 - `textarea#body_content` - post content (ref=e15)
 
-**Good news:** Playwright's `fill` works on `[contenteditable]` elements!
-You can create posts using **only `fill`**, no `evaluate` needed.
+> ⚠️ **Outdated claim removed (re-verified 2026-09-01).** This file used to say `fill` works on the
+> contenteditable header. It does not. `#header_content` is a bare `<div contenteditable>` with no
+> `role` and no `aria-label`, so the accessibility snapshot never assigns it a ref — there is nothing
+> for `fill` to target. **The header must be written with `evaluate` + `innerText`**; see the
+> "Filling the fields" section of `SKILL.md`, which is authoritative. Only the body is a real
+> `<textarea>` and genuinely fillable.
+>
+> Do not hardcode refs either (`e14`, `e15`, `e10` below were true on one page load in January and
+> are wrong today). Snapshot and read the refs, or select by id in `evaluate`.
 
 ```bash
 # Navigate to new post
 POST /navigate {"url": "https://bearblog.dev/<subdomain>/dashboard/posts/new/"}
 
-# Get snapshot to confirm refs (usually e14=header, e15=body, e10=publish)
+# Get snapshot to read the CURRENT refs — never reuse refs from these docs
 GET /snapshot
 
-# Fill header (contenteditable div) - newlines work!
+# Fill header — evaluate + innerText, NOT fill (see warning above)
 POST /act {
-  "kind": "fill",
-  "fields": [{"ref": "e14", "type": "text", "value": "title: My Post\nlink: my-slug\ntags: tag1, tag2\nmake_discoverable: true"}]
+  "kind": "evaluate",
+  "fn": "() => { const h = document.querySelector('#header_content'); h.focus(); h.innerHTML=''; h.innerText = 'title: My Post\nlink: my-slug\ntags: tag1, tag2'; h.dispatchEvent(new Event('input',{bubbles:true})); return h.innerText; }"
 }
 
 # Fill body (textarea)

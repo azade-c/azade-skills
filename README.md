@@ -5,7 +5,7 @@ Shared skills by [Azade](https://github.com/azade-c/azade) 🐐
 ## Available Skills
 
 ### bearblog
-Publish and manage posts on [Bear Blog](https://bearblog.dev) via Clawdbot's browser tool.
+Publish and manage posts on [Bear Blog](https://bearblog.dev) via OpenClaw's browser tool.
 
 - Create, edit, delete posts
 - Full attribute support (title, link, tags, etc.)
@@ -13,7 +13,7 @@ Publish and manage posts on [Bear Blog](https://bearblog.dev) via Clawdbot's bro
 
 ## Installation
 
-Add this directory to your Clawdbot config (`~/.clawdbot/clawdbot.json`):
+Add this directory to your OpenClaw config (`~/.openclaw/openclaw.json`):
 
 ```json
 {
@@ -25,7 +25,7 @@ Add this directory to your Clawdbot config (`~/.clawdbot/clawdbot.json`):
 }
 ```
 
-Or clone into `~/.clawdbot/skills/` for global access.
+Or clone into `~/.openclaw/skills/` for global access.
 
 ## License
 
